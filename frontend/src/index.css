@@ -1,1 +1,15 @@
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Poppins", sans-serif;
+
+  --color-marca-azul: #0010CD;
+  --color-marca-rosa: #F91C58;
+  --color-marca-rosa-escuro: #C0103F;
+  --color-marca-menta: #64FFB8;
+  --color-marca-roxo: #3B3C75;
+  --color-marca-fundo: #E7ECFE;
+  --color-marca-escuro: #00041C;
+  --color-marca-texto: #131313;
+  --color-marca-cinza: #5B5F7A;
+}
