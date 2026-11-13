@@ -3,6 +3,7 @@ import { api } from './services/api';
 import type { Aluno } from './types/aluno';
 import { ListaAlunos } from './components/ListaAlunos';
 import { DetalhesAluno } from './components/DetalhesAluno';
+import { FormularioAluno } from './components/FormularioAluno';
 
 function App() {
   const [alunos, setAlunos] = useState<Aluno[]>([]);
@@ -10,6 +11,7 @@ function App() {
   const [erro, setErro] = useState('');
   const [busca, setBusca] = useState('');
   const [alunoDetalheId, setAlunoDetalheId] = useState<string | null>(null);
+  const [formularioAberto, setFormularioAberto] = useState(false);
 
   // Busca a lista na API (GET /alunos) quando a página abre
   useEffect(() => {
@@ -54,6 +56,7 @@ function App() {
           </div>
           <button
             type="button"
+            onClick={() => setFormularioAberto(true)}
             className="min-h-12 rounded-full bg-marca-rosa px-7 text-lg font-bold text-white transition hover:brightness-110"
           >
             + Novo aluno
@@ -130,6 +133,7 @@ function App() {
           onFechar={() => setAlunoDetalheId(null)}
         />
       )}
+      {formularioAberto && <FormularioAluno onFechar={() => setFormularioAberto(false)} />}
     </div>
   );
 }
