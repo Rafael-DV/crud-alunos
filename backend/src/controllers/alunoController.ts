@@ -16,12 +16,18 @@ function filtrarCampos(body: Record<string, unknown> = {}): Partial<Aluno> {
 // Transforma erros do Mongoose/MongoDB em respostas HTTP claras
 function tratarErro(error: unknown, res: Response): void {
   if (error instanceof mongoose.Error.ValidationError) {
-    const erros = Object.values(error.errors).map((e) => e.message);
+    // Erros por campo, ex.: { email: 'Formato de email inválido' }
+    const erros: Record<string, string> = {};
+    for (const [campo, detalhe] of Object.entries(error.errors)) {
+      erros[campo] = detalhe.message;
+    }
     res.status(400).json({ mensagem: 'Dados inválidos', erros });
     return;
   }
+
   if ((error as { code?: number }).code === 11000) {
-    res.status(409).json({ mensagem: 'Já existe um aluno com este email' });
+    const mensagem = 'Já existe um aluno com este email';
+    res.status(409).json({ mensagem, erros: { email: mensagem } });
     return;
   }
   console.error(error);
