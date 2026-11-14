@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import type { Aluno } from '../types/aluno';
-import { formatarData, iniciais } from '../utils/formatacao';
+import { formatarData, formatarTelefone, iniciais } from '../utils/formatacao';
 import { Modal } from './Modal';
 
 interface DetalhesAlunoProps {
@@ -106,7 +106,11 @@ export function DetalhesAluno({ alunoId, onFechar }: DetalhesAlunoProps) {
             <LinhaDetalhe rotulo="ID" valor={aluno._id} copiavel mono />
             <LinhaDetalhe rotulo="Nome" valor={aluno.nome} copiavel />
             <LinhaDetalhe rotulo="Email" valor={aluno.email} copiavel />
-            <LinhaDetalhe rotulo="Telefone" valor={aluno.telefone || '—'} copiavel={Boolean(aluno.telefone)} />
+            <LinhaDetalhe
+              rotulo="Telefone"
+              valor={aluno.telefone ? formatarTelefone(aluno.telefone) : '—'}
+              copiavel={Boolean(aluno.telefone)}
+            />
             <LinhaDetalhe rotulo="Curso" valor={aluno.curso} />
             <LinhaDetalhe rotulo="Cadastrado em" valor={formatarData(aluno.criado_em)} />
             <LinhaDetalhe rotulo="Última atualização" valor={formatarData(aluno.atualizado_em)} />

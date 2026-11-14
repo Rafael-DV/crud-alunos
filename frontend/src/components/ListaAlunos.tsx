@@ -1,5 +1,5 @@
 import type { Aluno } from '../types/aluno';
-import { iniciais } from '../utils/formatacao';
+import { formatarTelefone, iniciais } from '../utils/formatacao';
 
 interface ListaAlunosProps {
   alunos: Aluno[];
@@ -70,7 +70,9 @@ export function ListaAlunos({
                   {aluno.curso}
                 </span>
               </td>
-              <td className="whitespace-nowrap px-5 py-3.5 text-[#4A4E68]">{aluno.telefone || '—'}</td>
+              <td className="whitespace-nowrap px-5 py-3.5 text-[#4A4E68]">
+                {aluno.telefone ? formatarTelefone(aluno.telefone) : '—'}
+              </td>
               <td className="px-5 py-3.5">
                 <span
                   className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${

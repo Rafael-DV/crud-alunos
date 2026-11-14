@@ -3,6 +3,7 @@ import axios from 'axios';
 import { api } from '../services/api';
 import type { Aluno } from '../types/aluno';
 import { Modal } from './Modal';
+import { formatarTelefone, mascaraTelefone } from '../utils/formatacao';
 
 interface FormularioAlunoProps {
   aluno?: Aluno;
@@ -30,6 +31,13 @@ function validar(dados: DadosFormulario): ErrosFormulario {
   if (!dados.email.trim()) erros.email = 'O email é obrigatório';
   else if (!REGEX_EMAIL.test(dados.email.trim())) erros.email = 'Formato de email inválido';
   if (!dados.curso.trim()) erros.curso = 'O curso é obrigatório';
+  if (dados.telefone.trim()) {
+    const telefone = dados.telefone.trim();
+    const valido = telefone.startsWith('+')
+      ? /^\+[1-9]\d{7,14}$/.test(telefone) // internacional
+      : /^[1-9]{2}9?\d{8}$/.test(telefone.replace(/\D/g, '')); // Brasil
+    if (!valido) erros.telefone = 'Telefone inválido. Brasil: DDD + número. Outros países: comece com + e o código do país';
+  }
   return erros;
 }
 
@@ -47,7 +55,7 @@ export function FormularioAluno({ aluno, onFechar, onSalvo }: FormularioAlunoPro
   const [dados, setDados] = useState<DadosFormulario>({
     nome: aluno?.nome ?? '',
     email: aluno?.email ?? '',
-    telefone: aluno?.telefone ?? '',
+    telefone: aluno?.telefone ? formatarTelefone(aluno.telefone) : '',
     curso: aluno?.curso ?? '',
     ativo: aluno?.ativo ?? true,
   });
@@ -149,12 +157,13 @@ export function FormularioAluno({ aluno, onFechar, onSalvo }: FormularioAlunoPro
             <input
               id="campo-telefone"
               type="tel"
-              maxLength={20}
-              placeholder="Opcional"
+              maxLength={16}
+              placeholder="(11) 98765-4321"
               value={dados.telefone}
-              onChange={(evento) => atualizarCampo('telefone', evento.target.value)}
+              onChange={(evento) => atualizarCampo('telefone', mascaraTelefone(evento.target.value))}
               className={classeInput(erros.telefone)}
             />
+            <span className="text-xs text-marca-cinza">Fora do Brasil? Comece com + e o código do país.</span>
             {erros.telefone && <span className="text-sm text-marca-rosa-escuro">{erros.telefone}</span>}
           </div>
 
