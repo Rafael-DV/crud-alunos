@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { api } from './services/api';
 import type { Aluno } from './types/aluno';
 import { ListaAlunos } from './components/ListaAlunos';
 import { DetalhesAluno } from './components/DetalhesAluno';
 import { FormularioAluno } from './components/FormularioAluno';
+import { Aviso } from './components/Aviso';
 
 function App() {
   const [alunos, setAlunos] = useState<Aluno[]>([]);
@@ -12,10 +13,13 @@ function App() {
   const [busca, setBusca] = useState('');
   const [alunoDetalheId, setAlunoDetalheId] = useState<string | null>(null);
   const [formularioAberto, setFormularioAberto] = useState(false);
+  const [aviso, setAviso] = useState<{ id: number; texto: string } | null>(null);
+  const fecharAviso = useCallback(() => setAviso(null), []);
 
   function aoCadastrar(alunoNovo: Aluno) {
     setAlunos((anteriores) => [alunoNovo, ...anteriores]);
     setFormularioAberto(false);
+    setAviso({ id: Date.now(), texto: 'Aluno cadastrado com sucesso' });
   }
 
   useEffect(() => {
@@ -134,6 +138,7 @@ function App() {
       {formularioAberto && (
         <FormularioAluno onFechar={() => setFormularioAberto(false)} onSalvo={aoCadastrar} />
       )}
+      {aviso && <Aviso key={aviso.id} texto={aviso.texto} onFechar={fecharAviso} />}
     </div>
   );
 }
