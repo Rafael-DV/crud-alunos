@@ -12,15 +12,22 @@ function App() {
   const [erro, setErro] = useState('');
   const [busca, setBusca] = useState('');
   const [alunoDetalheId, setAlunoDetalheId] = useState<string | null>(null);
-  const [formularioAberto, setFormularioAberto] = useState(false);
+  const [formulario, setFormulario] = useState<{ aluno?: Aluno } | null>(null);
   const [aviso, setAviso] = useState<{ id: number; texto: string } | null>(null);
   const fecharAviso = useCallback(() => setAviso(null), []);
 
-  function aoCadastrar(alunoNovo: Aluno) {
-    setAlunos((anteriores) => [alunoNovo, ...anteriores]);
-    setFormularioAberto(false);
-    setAviso({ id: Date.now(), texto: 'Aluno cadastrado com sucesso' });
-  }
+  function aoSalvar(alunoSalvo: Aluno, modo: 'criado' | 'atualizado') {
+  setAlunos((anteriores) =>
+    modo === 'criado'
+      ? [alunoSalvo, ...anteriores]
+      : anteriores.map((aluno) => (aluno._id === alunoSalvo._id ? alunoSalvo : aluno))
+  );
+  setFormulario(null);
+  setAviso({
+    id: Date.now(),
+    texto: modo === 'criado' ? 'Aluno cadastrado com sucesso' : 'Aluno atualizado com sucesso',
+  });
+}
 
   useEffect(() => {
     let ativo = true; 
@@ -62,7 +69,7 @@ function App() {
           </div>
           <button
             type="button"
-            onClick={() => setFormularioAberto(true)}
+            onClick={() => setFormulario({})}
             className="min-h-12 rounded-full bg-marca-rosa px-7 text-lg font-bold text-white transition hover:brightness-110"
           >
             + Novo aluno
@@ -124,6 +131,7 @@ function App() {
             alunos={alunosFiltrados}
             mensagemVazia={termo ? `Nenhum aluno encontrado para "${busca.trim()}".` : undefined}
             onVerDetalhes={(aluno) => setAlunoDetalheId(aluno._id)}
+            onEditar={(aluno) => setFormulario({ aluno })}
           />
         )}
       </div>
@@ -135,8 +143,13 @@ function App() {
           onFechar={() => setAlunoDetalheId(null)}
         />
       )}
-      {formularioAberto && (
-        <FormularioAluno onFechar={() => setFormularioAberto(false)} onSalvo={aoCadastrar} />
+            {formulario && (
+        <FormularioAluno
+          key={formulario.aluno?._id ?? 'novo'}
+          aluno={formulario.aluno}
+          onFechar={() => setFormulario(null)}
+          onSalvo={aoSalvar}
+        />
       )}
       {aviso && <Aviso key={aviso.id} texto={aviso.texto} onFechar={fecharAviso} />}
     </div>

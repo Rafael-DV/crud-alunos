@@ -5,8 +5,9 @@ import type { Aluno } from '../types/aluno';
 import { Modal } from './Modal';
 
 interface FormularioAlunoProps {
+  aluno?: Aluno;
   onFechar: () => void;
-  onSalvo: (aluno: Aluno) => void;
+  onSalvo: (aluno: Aluno, modo: 'criado' | 'atualizado') => void;
 }
 
 interface DadosFormulario {
@@ -40,14 +41,17 @@ function classeInput(erro?: string) {
   }`;
 }
 
-export function FormularioAluno({ onFechar, onSalvo }: FormularioAlunoProps) {
+export function FormularioAluno({ aluno, onFechar, onSalvo }: FormularioAlunoProps) {
+  const editando = Boolean(aluno); 
+
   const [dados, setDados] = useState<DadosFormulario>({
-    nome: '',
-    email: '',
-    telefone: '',
-    curso: '',
-    ativo: true,
+    nome: aluno?.nome ?? '',
+    email: aluno?.email ?? '',
+    telefone: aluno?.telefone ?? '',
+    curso: aluno?.curso ?? '',
+    ativo: aluno?.ativo ?? true,
   });
+
   const [erros, setErros] = useState<ErrosFormulario>({});
   const [erroGeral, setErroGeral] = useState(''); 
   const [salvando, setSalvando] = useState(false); 
@@ -74,8 +78,10 @@ export function FormularioAluno({ onFechar, onSalvo }: FormularioAlunoProps) {
     };
 
     try {
-      const resposta = await api.post<Aluno>('/alunos', payload);
-      onSalvo(resposta.data);
+      const resposta = aluno
+        ? await api.put<Aluno>(`/alunos/${aluno._id}`, payload)
+        : await api.post<Aluno>('/alunos', payload);
+      onSalvo(resposta.data, aluno ? 'atualizado' : 'criado');
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         const corpo = error.response.data as { mensagem?: string; erros?: ErrosFormulario };
@@ -90,7 +96,7 @@ export function FormularioAluno({ onFechar, onSalvo }: FormularioAlunoProps) {
   }
 
   return (
-    <Modal titulo="Novo aluno" onFechar={onFechar}>
+      <Modal titulo={editando ? 'Editar aluno' : 'Novo aluno'} onFechar={onFechar}>
       <form
         noValidate
         onSubmit={(evento) => {
@@ -192,7 +198,7 @@ export function FormularioAluno({ onFechar, onSalvo }: FormularioAlunoProps) {
             disabled={salvando}
             className="min-h-12 rounded-full bg-marca-rosa px-8 font-bold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {salvando ? 'Salvando...' : 'Cadastrar'}
+              {salvando ? 'Salvando...' : editando ? 'Salvar alterações' : 'Cadastrar'}
           </button>
         </div>
       </form>
