@@ -1,5 +1,17 @@
 import { Schema, model, InferSchemaType } from 'mongoose';
 
+function normalizarTelefone(valor?: string) {
+  if (!valor) return valor;
+  const digitos = valor.replace(/\D/g, '');
+  return valor.trim().startsWith('+') ? `+${digitos}` : `+55${digitos}`;
+}
+
+function telefoneValido(valor?: string) {
+  if (!valor) return true; // telefone é opcional
+  if (valor.startsWith('+55')) return /^\+55[1-9]{2}9?\d{8}$/.test(valor); // Brasil: DDD + 8 ou 9 dígitos
+  return /^\+[1-9]\d{7,14}$/.test(valor); // outros países: 8 a 15 dígitos (limite do E.164)
+}
+
 const alunoSchema = new Schema(
   {
     nome: {
@@ -20,7 +32,11 @@ const alunoSchema = new Schema(
     telefone: {
       type: String,
       trim: true,
-      maxlength: [20, 'O telefone deve ter no máximo 20 caracteres'],
+      set: normalizarTelefone,
+      validate: {
+        validator: telefoneValido,
+        message: 'Telefone inválido. Brasil: DDD + número. Outros países: comece com + e o código do país',
+      },
     },
     curso: {
       type: String,
