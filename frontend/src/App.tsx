@@ -13,9 +13,13 @@ function App() {
   const [alunoDetalheId, setAlunoDetalheId] = useState<string | null>(null);
   const [formularioAberto, setFormularioAberto] = useState(false);
 
-  // Busca a lista na API (GET /alunos) quando a página abre
+  function aoCadastrar(alunoNovo: Aluno) {
+    setAlunos((anteriores) => [alunoNovo, ...anteriores]);
+    setFormularioAberto(false);
+  }
+
   useEffect(() => {
-    let ativo = true; // evita atualizar o estado se o componente já saiu da tela
+    let ativo = true; 
     api
       .get<Aluno[]>('/alunos')
       .then((resposta) => {
@@ -32,12 +36,10 @@ function App() {
     };
   }, []);
 
-  // Valores calculados a partir do estado (não precisam de useState próprio)
   const total = alunos.length;
   const ativos = alunos.filter((aluno) => aluno.ativo).length;
   const inativos = total - ativos;
 
-  // Busca por nome ou email, sem diferenciar maiúsculas e minúsculas
   const termo = busca.trim().toLowerCase();
   const alunosFiltrados = termo
     ? alunos.filter(
@@ -63,7 +65,6 @@ function App() {
           </button>
         </header>
 
-        {/* Cards de resumo */}
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="flex flex-col gap-1 rounded-2xl bg-marca-azul px-6 py-5">
             <span className="text-sm text-indigo-100">Total de alunos</span>
@@ -85,7 +86,6 @@ function App() {
           </div>
         </section>
 
-        {/* Busca */}
         <div className="flex min-h-13 items-center gap-3 rounded-full border border-indigo-200 bg-white px-5 focus-within:border-marca-azul">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5B5F7A" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
             <circle cx="11" cy="11" r="7" />
@@ -109,7 +109,6 @@ function App() {
           )}
         </div>
 
-        {/* Conteúdo */}
         {carregando && <p className="text-marca-cinza">Carregando...</p>}
 
         {erro && (
@@ -125,7 +124,6 @@ function App() {
         )}
       </div>
 
-      {/* Modal de detalhes: só existe quando há um aluno selecionado */}
       {alunoDetalheId && (
         <DetalhesAluno
           key={alunoDetalheId}
@@ -133,7 +131,9 @@ function App() {
           onFechar={() => setAlunoDetalheId(null)}
         />
       )}
-      {formularioAberto && <FormularioAluno onFechar={() => setFormularioAberto(false)} />}
+      {formularioAberto && (
+        <FormularioAluno onFechar={() => setFormularioAberto(false)} onSalvo={aoCadastrar} />
+      )}
     </div>
   );
 }

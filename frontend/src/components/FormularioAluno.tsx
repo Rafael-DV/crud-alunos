@@ -1,8 +1,12 @@
 import { useState } from 'react';
+import axios from 'axios';
+import { api } from '../services/api';
+import type { Aluno } from '../types/aluno';
 import { Modal } from './Modal';
 
 interface FormularioAlunoProps {
   onFechar: () => void;
+  onSalvo: (aluno: Aluno) => void;
 }
 
 interface DadosFormulario {
@@ -36,7 +40,7 @@ function classeInput(erro?: string) {
   }`;
 }
 
-export function FormularioAluno({ onFechar }: FormularioAlunoProps) {
+export function FormularioAluno({ onFechar, onSalvo }: FormularioAlunoProps) {
   const [dados, setDados] = useState<DadosFormulario>({
     nome: '',
     email: '',
@@ -44,31 +48,63 @@ export function FormularioAluno({ onFechar }: FormularioAlunoProps) {
     curso: '',
     ativo: true,
   });
-  const [erros, setErros] = useState<ErrosFormulario>({});   // ← novo
+  const [erros, setErros] = useState<ErrosFormulario>({});
+  const [erroGeral, setErroGeral] = useState(''); 
+  const [salvando, setSalvando] = useState(false); 
 
   function atualizarCampo(campo: CampoTexto, valor: string) {
     setDados((anterior) => ({ ...anterior, [campo]: valor }));
-    setErros((anteriores) => ({ ...anteriores, [campo]: undefined }));   // ← linha nova
+    setErros((anteriores) => ({ ...anteriores, [campo]: undefined }));
   }
 
-  function enviar() {                                         // ← função nova
+  async function enviar() {
     const errosValidacao = validar(dados);
     setErros(errosValidacao);
-    if (Object.keys(errosValidacao).length > 0) return;
+    if (Object.keys(errosValidacao).length > 0) return; 
 
-    console.log('Dados válidos, prontos para a API:', dados);
+    setSalvando(true);
+    setErroGeral('');
+
+    const payload = {
+      nome: dados.nome.trim(),
+      email: dados.email.trim(),
+      telefone: dados.telefone.trim() || undefined,
+      curso: dados.curso.trim(),
+      ativo: dados.ativo,
+    };
+
+    try {
+      const resposta = await api.post<Aluno>('/alunos', payload);
+      onSalvo(resposta.data);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        const corpo = error.response.data as { mensagem?: string; erros?: ErrosFormulario };
+        if (corpo.erros) setErros(corpo.erros);
+        else setErroGeral(corpo.mensagem ?? 'Não foi possível salvar o aluno.');
+      } else {
+        setErroGeral('Não foi possível conectar à API. Verifique se ela está rodando.');
+      }
+    } finally {
+      setSalvando(false);
+    }
   }
 
   return (
-    <Modal titulo="Novo aluno" onFechar={onFechar}>    
+    <Modal titulo="Novo aluno" onFechar={onFechar}>
       <form
         noValidate
         onSubmit={(evento) => {
           evento.preventDefault();
-          enviar();
+          void enviar();
         }}
         className="flex flex-col gap-5"
       >
+        {erroGeral && (
+          <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-marca-rosa-escuro">
+            {erroGeral}
+          </p>
+        )}
+
         <div className="flex flex-col gap-1.5">
           <label htmlFor="campo-nome" className="text-sm font-semibold">
             Nome <span className="text-marca-rosa-escuro">*</span>
@@ -142,6 +178,7 @@ export function FormularioAluno({ onFechar }: FormularioAlunoProps) {
           />
           <span className="font-medium">Aluno ativo</span>
         </label>
+
         <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
           <button
             type="button"
@@ -152,9 +189,10 @@ export function FormularioAluno({ onFechar }: FormularioAlunoProps) {
           </button>
           <button
             type="submit"
-            className="min-h-12 rounded-full bg-marca-rosa px-8 font-bold text-white transition hover:brightness-110"
+            disabled={salvando}
+            className="min-h-12 rounded-full bg-marca-rosa px-8 font-bold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Cadastrar
+            {salvando ? 'Salvando...' : 'Cadastrar'}
           </button>
         </div>
       </form>
