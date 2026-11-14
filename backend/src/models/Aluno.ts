@@ -27,7 +27,7 @@ const alunoSchema = new Schema(
       trim: true,
       lowercase: true,
       maxlength: [254, 'O email deve ter no máximo 254 caracteres'],
-      match: [/^\S+@\S+\.\S+$/, 'Formato de email inválido'],
+      match: [/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'Formato de email inválido'],
     },
     telefone: {
       type: String,

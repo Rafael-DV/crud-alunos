@@ -23,7 +23,7 @@ type CampoTexto = 'nome' | 'email' | 'telefone' | 'curso';
 
 type ErrosFormulario = Partial<Record<CampoTexto, string>>;
 
-const REGEX_EMAIL = /^\S+@\S+\.\S+$/;
+const REGEX_EMAIL = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 function validar(dados: DadosFormulario): ErrosFormulario {
   const erros: ErrosFormulario = {};
