@@ -5,6 +5,7 @@ import { ListaAlunos } from './components/ListaAlunos';
 import { DetalhesAluno } from './components/DetalhesAluno';
 import { FormularioAluno } from './components/FormularioAluno';
 import { Aviso } from './components/Aviso';
+import { ConfirmarExclusao } from './components/ConfirmarExclusao';
 
 function App() {
   const [alunos, setAlunos] = useState<Aluno[]>([]);
@@ -15,6 +16,7 @@ function App() {
   const [formulario, setFormulario] = useState<{ aluno?: Aluno } | null>(null);
   const [aviso, setAviso] = useState<{ id: number; texto: string } | null>(null);
   const fecharAviso = useCallback(() => setAviso(null), []);
+  const [alunoParaExcluir, setAlunoParaExcluir] = useState<Aluno | null>(null);
 
   function aoSalvar(alunoSalvo: Aluno, modo: 'criado' | 'atualizado') {
   setAlunos((anteriores) =>
@@ -28,6 +30,12 @@ function App() {
     texto: modo === 'criado' ? 'Aluno cadastrado com sucesso' : 'Aluno atualizado com sucesso',
   });
 }
+
+  function aoExcluir(id: string) {
+    setAlunos((anteriores) => anteriores.filter((aluno) => aluno._id !== id));
+    setAlunoParaExcluir(null);
+    setAviso({ id: Date.now(), texto: 'Aluno excluído com sucesso' });
+  }
 
   useEffect(() => {
     let ativo = true; 
@@ -132,6 +140,7 @@ function App() {
             mensagemVazia={termo ? `Nenhum aluno encontrado para "${busca.trim()}".` : undefined}
             onVerDetalhes={(aluno) => setAlunoDetalheId(aluno._id)}
             onEditar={(aluno) => setFormulario({ aluno })}
+            onExcluir={(aluno) => setAlunoParaExcluir(aluno)}
           />
         )}
       </div>
@@ -149,6 +158,13 @@ function App() {
           aluno={formulario.aluno}
           onFechar={() => setFormulario(null)}
           onSalvo={aoSalvar}
+        />
+      )}
+      {alunoParaExcluir && (
+        <ConfirmarExclusao
+          aluno={alunoParaExcluir}
+          onCancelar={() => setAlunoParaExcluir(null)}
+          onExcluido={aoExcluir}
         />
       )}
       {aviso && <Aviso key={aviso.id} texto={aviso.texto} onFechar={fecharAviso} />}
